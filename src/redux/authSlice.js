@@ -1,55 +1,84 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-    user: null,
-    isLoggedIn: false,
-    isLoading: false,
-    error: null,
-};
-const authSlide = createSlice({
-    name: 'auth',
-    initialState,
-    reducers:{
-        lodinStart(state){
-            state.isLoading = true;
-            state.error = null;
-        },
-        loginSuccess(state, action) {
-            state.isLoading = false;
-            state.isLoggedIn  = true;
-            state.user = action.payload;
-            state.error = null;
-        },
-        loginFailure(state, action) {
-            state.isLoading = false;
-            state.isLoggedIn = false;
-            state.error = action.payload;
-        },
-    },
+export const register = createAsyncThunk('auth/register', async (userData, { rejectWithValue }) => {
+  try {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error('Não foi possível registrar');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.message);
+  }
 });
 
-export const {lodinStart, loginSuccess, loginFailure } = authSlide.actions;
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: {
+    user: null,
+    isAuthenticated: false,
+    loading: false,
+    error: null,
+  },
+  reducers: {
+    loginStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    loginSuccess: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      state.loading = false;
+    },
+    loginFailure: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(register.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isAuthenticated = true;
+        state.loading = false;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.error = action.payload;
+        state.loading = false;
+      });
+  },
+});
 
-export default authSlide.reducer;
+export const { loginStart, loginSuccess, loginFailure } = authSlice.actions;
 
-// Criador de ação de conversão assíncrona
+export default authSlice.reducer;
 
 export const loginUser = (email, password) => async (dispatch) => {
-    dispatch(loginStart());
-    try {
-        const response = await fetch('http://localhost:8080/api/auth/login',{
-            method: 'POST',
-            headers: {
-                'Content-Type' : 'application/json',
-            },
-            body: JSON.stringify({email, password}),
-        });
-        if (!response.ok) {
-            throw new Error('Não foi possível fazer login');
-        }
-        const data = await response.json();
-        dispatch(loginSuccess(data)); // Supondo que os dados contenham informações do usuário ou token
-    } catch (error){
-        dispatch(loginFailure(error.message));
+  dispatch(loginStart());
+  try {
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      throw new Error('Não foi possível fazer login');
     }
+    const data = await response.json();
+    dispatch(loginSuccess(data));
+  } catch (error) {
+    dispatch(loginFailure(error.message));
+  }
 };

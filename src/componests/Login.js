@@ -1,48 +1,58 @@
-import { Button, Container, TextField, Typography } from "@mui/material";
-import React, {useState} from "react";
-import { useDispatch } from "react-redux";
-import { loginUser } from '../redux/authSlide';
-import { useHistory } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../redux/authSlice';
+import { Container, TextField, Button, Typography, Box } from '@mui/material';
+
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const[password, setPassword] = useState('');
-    const history = useHistory();
-    const dispatch = useDispatch();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const handleSubmit = async(e)=> {
-        e.prventDefault();
-        dispatch(loginUser(email, password));
-        
-    };
-    return (
-       <Container maxWidth="sm">
-        <Typography variant="h4" component="h1" gutterBottom>
-            Login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await dispatch(loginUser(email, password)).unwrap();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <Container maxWidth="xs">
+      <Box sx={{ mt: 8 }}>
+        <Typography component="h1" variant="h5">
+          Login
         </Typography>
-        <form onSubmit={handleSubmit}>
-            <TextField
+        <form onSubmit={handleLogin}>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
             label="Email"
-            variant="outlined"
-            fullWidth
-            margin="normal"
             value={email}
-            onChange={(e) => setEmail(e.target.value)} />
-
-            <TextField 
-            label="Password"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
             variant="outlined"
-            type="password"
-            fullWidth
             margin="normal"
+            required
+            fullWidth
+            label="Password"
+            type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)} />
-
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-                Login
-            </Button>
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button type="submit" fullWidth variant="contained" color="primary">
+            Login
+          </Button>
         </form>
-       </Container>
-    );
-
+      </Box>
+    </Container>
+  );
 };
+
 export default Login;
