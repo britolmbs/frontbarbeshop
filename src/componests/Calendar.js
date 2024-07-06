@@ -1,7 +1,8 @@
 import { Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material";
 import moment from "moment";
 import { useState } from "react";
-import { momentLocalizer } from "react-big-calendar";
+import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
+
 
 
 const localizer = momentLocalizer(moment);
@@ -37,9 +38,9 @@ const handleSave= () => {
         return;
     }
     if(selectedEvent){
-        setEvents(events.map(events => (events === selectedEvent ? newEvent : event)));        
+        setEvents(events.map(events => (events === selectedEvent ? newEvent : events)));        
     } else {
-        setEvents([...events, newEvent];)
+        setEvents([...events, newEvent]);
     }
     handleClose();
 };
@@ -50,7 +51,7 @@ const handleDelete = () => {
 return (
     <Container>
         <Typography variant="h5" style={{ margin: '20px 0'}}>Calendáro de Disponibilidade</Typography>
-        <BigCalendar
+         <BigCalendar
         localizer={localizer}
         events={events}
         selectable
